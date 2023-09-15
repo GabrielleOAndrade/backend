@@ -4,7 +4,7 @@ const app = express();
 let listaTarefas = [
   {
     id: 1,
-    nome:"Estudar HTML",
+    nome: "Estudar HTML",
   },
   {
     id: 2,
@@ -12,7 +12,7 @@ let listaTarefas = [
   },
   {
     id: 3,
-    nome:"Estudar React"
+    nome: "Estudar React",
   },
 ];
 app.get("/", (request, response) => {
@@ -22,10 +22,25 @@ app.get("/", (request, response) => {
 app.get("/api/lista-tarefas", (request, response) => {
   response.json(listaTarefas);
 });
+
 app.get("/api/lista-tarefas/:id", (request, response) => {
-    const id = Number(request.params.id)
-    const tarefa = listaTarefas.find((tarefas) => tarefas.id === id)
+  const id = Number(request.params.id);
+  const tarefa = listaTarefas.find((tarefas) => tarefas.id === id);
+
+  if (listaTarefas) {
     response.json(tarefa);
+  } else {
+    response.status(404).end();
+  }
+
+  app.delete("/api/lista-tarefas/:id", (request, response) => {
+    const id = Number(request.params.id);
+    tarefas = listaTarefas.filter((tarefa) => tarefa.id !== id);
+
+    response.status(204).end();
+  });
+
+  response.json(tarefa);
 });
 
 const PORT = 3001;
