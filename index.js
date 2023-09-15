@@ -1,6 +1,8 @@
 const express = require("express");
 const app = express();
 
+app.use(express.json());
+
 let listaTarefas = [
   {
     id: 1,
@@ -23,6 +25,21 @@ app.get("/api/lista-tarefas", (request, response) => {
   response.json(listaTarefas);
 });
 
+
+app.post("/api/lista-tarefas", (request, response) => {
+  const maxId =
+    listaTarefas.length > 0 ? Math.max(...listaTarefas.map((t) => t.id)) : 0;
+
+  const tarefa = request.body;
+  console.log = tarefa;
+
+  tarefa.id = maxId + 1;
+
+  listaTarefas = listaTarefas.concat(tarefa);
+
+  response.json(tarefa);
+});
+
 app.get("/api/lista-tarefas/:id", (request, response) => {
   const id = Number(request.params.id);
   const tarefa = listaTarefas.find((tarefas) => tarefas.id === id);
@@ -35,7 +52,7 @@ app.get("/api/lista-tarefas/:id", (request, response) => {
 
   app.delete("/api/lista-tarefas/:id", (request, response) => {
     const id = Number(request.params.id);
-    tarefas = listaTarefas.filter((tarefa) => tarefa.id !== id);
+    listaTarefas = listaTarefas.filter((tarefa) => tarefa.id !== id);
 
     response.status(204).end();
   });
