@@ -1,65 +1,105 @@
-const express = require("express");
-const app = express();
+const express = require('express')
+const app = express()
 
-app.use(express.json());
-
-let listaTarefas = [
-  {
-    id: 1,
-    nome: "Estudar HTML",
-  },
-  {
-    id: 2,
-    nome: "Estudar CSS",
-  },
-  {
-    id: 3,
-    nome: "Estudar React",
-  },
-];
-app.get("/", (request, response) => {
-  response.send("<h1>Hello World!</h1>");
-});
-
-app.get("/api/lista-tarefas", (request, response) => {
-  response.json(listaTarefas);
-});
+app.use(express.json())
 
 
-app.post("/api/lista-tarefas", (request, response) => {
-  const maxId =
-    listaTarefas.length > 0 ? Math.max(...listaTarefas.map((t) => t.id)) : 0;
+let persons = 
+[
+    { 
+      "id": 1,
+      "name": "Arto Hellas", 
+      "number": "040-123456"
+    },
+    { 
+      "id": 2,
+      "name": "Ada Lovelace", 
+      "number": "39-44-5323523"
+    },
+    { 
+      "id": 3,
+      "name": "Dan Abramov", 
+      "number": "12-43-234345"
+    },
+    { 
+      "id": 4,
+      "name": "Mary Poppendieck", 
+      "number": "39-23-6423122"
+    }
+]
 
-  const tarefa = request.body;
-  console.log = tarefa;
+app.get('/', (request, response) => {
+  response.send('<h1>Hello World!</h1>')
+})
 
-  tarefa.id = maxId + 1;
+const dataAtual = new Date();
 
-  listaTarefas = listaTarefas.concat(tarefa);
+app.get("/info", (request, response) => {
+    response.send(`
+    <h1>O Fonebook têm informação de ${persons.length} pessoas!</h1>
+    ${dataAtual}
+    `)
+  })
 
-  response.json(tarefa);
-});
+app.get('/api/persons', (request, response) => {
+  response.json(persons)
+})
 
-app.get("/api/lista-tarefas/:id", (request, response) => {
-  const id = Number(request.params.id);
-  const tarefa = listaTarefas.find((tarefas) => tarefas.id === id);
+app.delete('/api/persons/:id', (request, response) => {
+  const id = Number(request.params.id)
+  persons = persons.filter(person => person.id !== id)
 
-  if (listaTarefas) {
-    response.json(tarefa);
-  } else {
-    response.status(404).end();
+  response.status(204).end()
+})
+
+const generateId = () => {
+  const maxId = persons.length > 0
+    ? Math.max(...persons.map(n => n.id))
+    : 0
+  return maxId + 1
+}
+
+const requestLogger = (request, response, next) => {
+  console.log('Method:', request.method)
+  console.log('Path:  ', request.path)
+  console.log('Body:  ', request.body)
+  console.log('---')
+  next()
+}
+
+app.use(requestLogger)
+app.post('/api/persons', (request, response) => {
+  const body = request.body
+
+  if (!body.name) {
+    return response.status(400).json({ 
+      error: 'Nome não informado' 
+    })
+  }
+    if (!body.number) {
+      return response.status(400).json({ 
+        error: 'content missing' 
+      })
   }
 
-  app.delete("/api/lista-tarefas/:id", (request, response) => {
-    const id = Number(request.params.id);
-    listaTarefas = listaTarefas.filter((tarefa) => tarefa.id !== id);
+  const person = {
+    name: body.name,
+    number: body.number,
+    id: generateId(),
+  }
 
-    response.status(204).end();
-  });
+  persons = persons.concat(person)
 
-  response.json(tarefa);
-});
+  response.json(persons)
+})
 
-const PORT = 3001;
-app.listen(PORT);
-console.log(`Server running on port ${PORT}`);
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' })
+}
+
+app.use(unknownEndpoint)
+
+const PORT = 3001
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
+})
