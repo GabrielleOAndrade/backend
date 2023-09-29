@@ -1,105 +1,96 @@
-const express = require('express')
-const app = express()
+const express = require("express");
+const conn = require('./db/conn');
+const app = express();
 
-app.use(express.json())
+app.use(express.json());
 
+app.get("/", (request, response) => {
+  response.send("<h1>Seja bem vindo!</h1>");
+});
 
-let persons = 
-[
-    { 
-      "id": 1,
-      "name": "Arto Hellas", 
-      "number": "040-123456"
-    },
-    { 
-      "id": 2,
-      "name": "Ada Lovelace", 
-      "number": "39-44-5323523"
-    },
-    { 
-      "id": 3,
-      "name": "Dan Abramov", 
-      "number": "12-43-234345"
-    },
-    { 
-      "id": 4,
-      "name": "Mary Poppendieck", 
-      "number": "39-23-6423122"
-    }
-]
+app.get("/api/lista-tarefas", (request, response) => {
+  conn('tab_tarefas')
+  .select()
+  .then((tarefas) => {
+    response.json(tarefas);
+  });
+});
 
-app.get('/', (request, response) => {
-  response.send('<h1>Hello World!</h1>')
-})
+app.post("/api/lista-tarefas", (request, response) => {
+  const nome = request.body.nome;
 
-const dataAtual = new Date();
-
-app.get("/info", (request, response) => {
-    response.send(`
-    <h1>O Fonebook têm informação de ${persons.length} pessoas!</h1>
-    ${dataAtual}
-    `)
+    if (!nome) {
+    return response.status(400).json({
+      error: "Nome da tarefa não fornecido",
+    });
+  }
+  conn ('tab_tarefas')
+  .insert({ nome:nome })
+  .then ((tarefa) => {
+    response.json(tarefa);
   })
+  .catch((error) => {
+    response.status(500).json({
+      error: "Erro ao inserir a tarefa no banco de dados",
+    });
+  })
+});
 
-app.get('/api/persons', (request, response) => {
-  response.json(persons)
-})
+app.put("/api/lista-tarefas/:id", (request, response) => {
+  const nome = request.body.nome;
+  const id = Number(request.params.id);
 
-app.delete('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
-  persons = persons.filter(person => person.id !== id)
-
-  response.status(204).end()
-})
-
-const generateId = () => {
-  const maxId = persons.length > 0
-    ? Math.max(...persons.map(n => n.id))
-    : 0
-  return maxId + 1
-}
-
-const requestLogger = (request, response, next) => {
-  console.log('Method:', request.method)
-  console.log('Path:  ', request.path)
-  console.log('Body:  ', request.body)
-  console.log('---')
-  next()
-}
-
-app.use(requestLogger)
-app.post('/api/persons', (request, response) => {
-  const body = request.body
-
-  if (!body.name) {
-    return response.status(400).json({ 
-      error: 'Nome não informado' 
-    })
+    if (!nome) {
+    return response.status(400).json({
+      error: "Nome da tarefa não fornecido",
+  
+    });
   }
-    if (!body.number) {
-      return response.status(400).json({ 
-        error: 'content missing' 
-      })
-  }
+  conn ('tab_tarefas')
+  .update ({ nome:nome })
+  .then (_) => {
+  .where( { id: id })  
+    response
+    .status(200)
+    .json({ msg: "Tarefa atualizada com sucesso!"});
 
-  const person = {
-    name: body.name,
-    number: body.number,
-    id: generateId(),
-  }
+ })
+  
+  .catch((error) => {
+    response.status(500).json({
+      error: "Erro ao inserir a tarefa no banco de dados",
+    });
+  });
 
-  persons = persons.concat(person)
+app.get("/api/lista-tarefas/:id", (request, response) => {
+  const id = Number(request.params.id); // 1 == 1 | 1 == "1"
+  conn ('tab_tarefas').select().where( { id: id }).then((tarefas) => {
+  response.status(200).json(tarefa);
+  })
+  .catch((error) => {
+    response.status(500).json({
+      error:"Erro ao buscar a tarega no banco de dados"
+    });
+  });
 
-  response.json(persons)
+  });
+
+ app.delete("/api/lista-tarefas/:id", (request, response) => {
+ const id = Number(request.params.id);
+ conn ('tab_tarefas')
+ .del().where({ 'id' : id })
+ .then((_) => {
+response.status(200).json({ msg:'A tarefa foi excluída!'});
+ })
+.catch((error) => {
+  response.status(500).json({
+    error: "Erro ao excluir a tarefa no banco de dados",
+  });
 })
+});
 
-const unknownEndpoint = (request, response) => {
-  response.status(404).send({ error: 'unknown endpoint' })
-}
 
-app.use(unknownEndpoint)
-
-const PORT = 3001
+const PORT = 3001;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
-})
+  console.log(`Server running on port ${PORT}`);
+});
