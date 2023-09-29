@@ -1,12 +1,15 @@
 const express = require("express");
+const TarefasRoutes = require('./routes/TarefasRoutes');
 const conn = require('./db/conn');
 const app = express();
 
-app.use(express.json());
+app.use("/api/lista-tarefa", TarefasRoutes);
 
 app.get("/", (request, response) => {
   response.send("<h1>Seja bem vindo!</h1>");
 });
+
+app.use("/", TarefasRoutes);
 
 app.get("/api/lista-tarefas", (request, response) => {
   conn('tab_tarefas')
