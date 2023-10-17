@@ -1,16 +1,17 @@
 const express = require("express");
-const TarefasRoutes = require('./routes/TarefasRoutes');
+const TarefasRoutes = require("./routes/TarefasRoutes");
 
 const app = express();
 
+const cors = require("cors");
 
+app.use(cors());
 
 app.get("/", (request, response) => {
   response.send("<h1>Seja bem vindo!</h1>");
 });
 
-app.use("/api/lista-tarefas", TarefasRoutes);
-
+app.use("/api/persons", TarefasRoutes);
 
 const PORT = 3001;
 app.listen(PORT, () => {
