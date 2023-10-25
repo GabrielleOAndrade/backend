@@ -61,7 +61,7 @@ const update = (request, response) => {
   const readById = (request, response) => {
     const id = Number(request.params.id);
     conn("tab_tarefas")
-      .select()
+      .first()
       .where({ id: id })
       .then((person) => {
         response.status(200).json(person);
