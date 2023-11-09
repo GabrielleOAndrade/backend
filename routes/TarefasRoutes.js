@@ -1,10 +1,11 @@
 const router = require("express").Router();
 
 const TarefasController = require("../controller/TarefasController");
+const imageUpload = require("../helpers/imageUpload");
 
 router.get("/", TarefasController.read);
 
-router.post("/" , TarefasController.create );
+router.post("/" , imageUpload.single('foto'), TarefasController.create );
 
 router.put("/:id", TarefasController.update);
 
